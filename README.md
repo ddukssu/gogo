@@ -1,194 +1,64 @@
-# AP2 Assignment 1 – Medical Scheduling Platform
+# Medical Scheduling Platform (gRPC Migration)
 
-## What This Project Does
+This project is the second assignment for the Advanced Programming 2 course. We have migrated the Medical Scheduling Platform from a REST-based architecture to gRPC. The project consists of two microservices that communicate using the gRPC protocol and Protocol Buffers.
 
-This project has two services that work together:
+## Project Structure
+- **Doctor Service**: Manages doctor profiles. It runs on port `:50051`.
+- **Appointment Service**: Manages medical appointments. It runs on port `:50052`.
+- **Inter-service communication**: The Appointment Service acts as a gRPC client. It calls the Doctor Service to check if a doctor exists before creating an appointment.
 
-- **Doctor Service** – stores and manages doctor information. Runs on port `8080`.
-- **Appointment Service** – stores and manages appointments. Runs on port `8081`.
+## How to Regenerate Proto Stubs
+If you change the `.proto` files, use these commands from the root directory to update the Go code:
 
-When someone creates an appointment, the Appointment Service checks with the Doctor Service that the doctor actually exists. If the Doctor Service is down, the appointment is not created.
-
----
-
-## Architecture
-
-```
-┌─────────────────────────────┐         ┌──────────────────────────────────┐
-│       Doctor Service        │         │       Appointment Service         │
-│         :8080               │         │            :8081                  │
-│                             │         │                                   │
-│  [Handler]                  │ ◄──HTTP─┤  [Handler]                        │
-│  [Use Case]                 │  GET    │  [Use Case]                       │
-│  [Repository]               │ /doctors│  [Repository]  [DoctorClient]     │
-│  (in-memory)                │  /{id}  │  (in-memory)   (HTTP client)      │
-└─────────────────────────────┘         └──────────────────────────────────┘
+**Doctor Service:**
+```bash
+protoc --go_out=. --go-opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    doc/proto/doctor.proto
 ```
 
-Each service has its own data. They only talk to each other through REST API calls.
-
----
-
-## What Each Service Does
-
-### Doctor Service
-- Creates, stores, and returns doctor profiles.
-- Does not know anything about appointments.
-- Rules: `full_name` is required, `email` is required and must be unique.
-
-### Appointment Service
-- Creates, stores, and returns appointments.
-- Before creating an appointment, it calls the Doctor Service to check that the doctor exists.
-- Rules: `title` is required, `doctor_id` must point to a real doctor, status can only be `new`, `in_progress`, or `done`. You cannot change status from `done` back to `new`.
-
----
-
-## Folder Structure
-
+**Appointment Service:**
+```bash
+protoc --go_out=. --go-opt=paths=source_relative \
+    --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+    appointment/proto/appointment.proto
 ```
-service/
-├── cmd/
-│   └── main.go              ← starts the server
-├── internal/
-│   ├── model/               ← data types (Doctor, Appointment)
-│   ├── usecase/             ← business logic
-│   ├── repository/          ← stores data in memory
-│   ├── client/              ← (appointment service only) calls Doctor Service
-│   ├── transport/http/      ← HTTP handlers
-│   └── app/                 ← connects all layers together
-└── go.mod
-```
-
-Dependencies go in one direction: `handler → use case → repository/client → model`.
-Handlers do not contain business logic. Use cases do not import Gin or anything HTTP-related.
-
----
-
-## How Services Communicate
-
-When a client sends `POST /appointments`, the Appointment Service does this:
-
-```
-POST /appointments
-  └─► GET http://localhost:8080/doctors/{doctor_id}
-        ├─ 200 OK   → create the appointment
-        ├─ 404      → return 422: doctor does not exist
-        └─ error    → return 503: doctor service unavailable
-```
-
-The HTTP client has a 5-second timeout so the service does not wait forever.
-
----
 
 ## How to Run
+1. **Start the Doctor Service**:
+   ```bash
+   cd doc
+   go run cmd/main.go
+   ```
+2. **Start the Appointment Service**:
+   ```bash
+   cd appointment
+   go run cmd/main.go
+   ```
 
-You need Go 1.22 or newer.
+## Testing the Project
 
-**Terminal 1 – Doctor Service:**
+**1. Create a Doctor:**
 ```bash
-cd doctor-service
-go mod tidy
-go run ./cmd
+grpcurl -plaintext -import-path ./doc/proto -proto doctor.proto \
+    -d '{"name": "Gregory House", "specialty": "Diagnostics", "email": "house@med.com"}' \
+    localhost:50051 doctor.DoctorService/CreateDoctor
 ```
 
-**Terminal 2 – Appointment Service:**
+**2. Create an Appointment:**
 ```bash
-cd appointment-service
-go mod tidy
-DOCTOR_SERVICE_URL=http://127.0.0.1:8080 go run ./cmd
+grpcurl -plaintext -import-path ./appointment/proto -proto appointment.proto \
+    -d '{"patient_id": "P-001", "doctor_id": "PASTE_DOCTOR_ID_HERE", "date": "2026-05-10"}' \
+    localhost:50052 appointment.AppointmentService/CreateAppointment
 ```
 
----
+## Error Handling and Resilience
+- **NotFound**: If you try to create an appointment with a doctor ID that does not exist, the service returns a `codes.NotFound` error.
+- **Unavailable**: If the Doctor Service is offline, the Appointment Service returns a `codes.Unavailable` error. This proves that the system handles service failures gracefully without crashing.
 
-## Why There Is No Shared Database
+## REST vs gRPC Trade-offs
+Main differences:
 
-Each service owns its own data. The Appointment Service cannot read the Doctor Service's database directly — it can only ask through the API.
-
-This is important because:
-- If the Doctor Service changes its database structure, the Appointment Service still works.
-- Each service can be updated or restarted independently.
-- A shared database would make this a **distributed monolith** — two separate processes but still tightly connected, which removes most of the benefits of microservices.
-
----
-
-## Failure Scenario
-
-If the Doctor Service is not running when someone tries to create an appointment:
-
-1. The HTTP client gets a connection error.
-2. The use case receives `ErrDoctorServiceUnavailable`.
-3. The handler returns `503 Service Unavailable` with a clear error message.
-4. The error is logged.
-5. The appointment is **not** created.
-
-**In a production system**, you would also add:
-
-| Pattern | Purpose |
-|---|---|
-| **Timeout** | Already added (5 seconds). Prevents waiting forever. |
-| **Retry with backoff** | Try again a few times before giving up, in case the error is temporary. |
-| **Circuit breaker** | Stop sending requests to a service that keeps failing. Try again after some time. Useful libraries: `gobreaker`, `hystrix-go`. |
-
----
-
-## API Examples
-
-### Doctor Service
-
-**Create a doctor**
-```
-POST http://localhost:8080/doctors
-Content-Type: application/json
-
-{
-  "full_name": "Dr. Aisha Seitkali",
-  "specialization": "Cardiology",
-  "email": "a.seitkali@clinic.kz"
-}
-```
-
-**Get one doctor**
-```
-GET http://localhost:8080/doctors/{id}
-```
-
-**Get all doctors**
-```
-GET http://localhost:8080/doctors
-```
-
-### Appointment Service
-
-**Create an appointment**
-```
-POST http://localhost:8081/appointments
-Content-Type: application/json
-
-{
-  "title": "Initial cardiac consultation",
-  "description": "Patient referred for palpitations",
-  "doctor_id": "<id from doctor service>"
-}
-```
-
-**Get one appointment**
-```
-GET http://localhost:8081/appointments/{id}
-```
-
-**Get all appointments**
-```
-GET http://localhost:8081/appointments
-```
-
-**Update appointment status**
-```
-PATCH http://localhost:8081/appointments/{id}/status
-Content-Type: application/json
-
-{
-  "status": "in_progress"
-}
-```
-
-Valid values: `new`, `in_progress`, `done`. Changing from `done` to `new` returns `400 Bad Request`.
+1. **Protocol and Speed**: REST uses HTTP/1.1 and JSON (text format), which is slower to parse. gRPC uses HTTP/2 and Protocol Buffers (binary format), which is much faster and uses less network bandwidth.
+2. **Strict Contracts**: In REST, documentation (like Swagger) is optional. In gRPC, the `.proto` file is a strict contract. You cannot send data that doesn't follow the schema, which reduces bugs.
+3. **Multiplexing**: gRPC (via HTTP/2) allows sending multiple requests over a single connection at the same time. REST (via HTTP/1.1) usually handles one request per connection, making it less efficient for many microservices.
