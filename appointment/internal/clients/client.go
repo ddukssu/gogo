@@ -1,47 +1,34 @@
 package clients
 
 import (
-	"errors"
-	"fmt"
-	"net/http"
-	"time"
+	"context"
+	pb "github.com/ddukssu/gogo/doc/proto"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/status"
 )
 
-var ErrDoctorNotFound = errors.New("doctor not found")
-var ErrDoctorServiceUnavailable = errors.New("doctor service unavailable")
-
-type DoctorClient interface {
-	DoctorExists(doctorID string) error
+type DoctorClient struct {
+	client pb.DoctorServiceClient
 }
 
-type httpDoctorClient struct {
-	baseURL    string
-	httpClient *http.Client
-}
-
-func NewHTTPDoctorClient(baseURL string) DoctorClient {
-	return &httpDoctorClient{
-		baseURL: baseURL,
-		httpClient: &http.Client{
-			Timeout: 5 * time.Second,
-		},
-	}
-}
-
-func (c *httpDoctorClient) DoctorExists(doctorID string) error {
-	url := fmt.Sprintf("%s/doctors/%s", c.baseURL, doctorID)
-
-	resp, err := c.httpClient.Get(url)
+func NewDoctorClient(target string) (*DoctorClient, error) {
+	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
-		return ErrDoctorServiceUnavailable
+		return nil, err
 	}
-	defer resp.Body.Close()
+	return &DoctorClient{client: pb.NewDoctorServiceClient(conn)}, nil
+}
 
-	if resp.StatusCode == http.StatusNotFound {
-		return ErrDoctorNotFound
+func (c *DoctorClient) CheckDoctorExists(doctorID string) (bool, error) {
+	_, err := c.client.GetDoctor(context.Background(), &pb.GetDoctorRequest{Id: doctorID})
+	if err != nil {
+		st, ok := status.FromError(err)
+		if ok && st.Code() == codes.NotFound {
+			return false, nil
+		}
+		return false, status.Errorf(codes.Unavailable, "doctor service недоступен")
 	}
-	if resp.StatusCode != http.StatusOK {
-		return ErrDoctorServiceUnavailable
-	}
-	return nil
+	return true, nil
 }

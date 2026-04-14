@@ -1,0 +1,30 @@
+syntax = "proto3";
+package doctor;
+option go_package = "github.com/ddukssu/gogo/doc/proto";
+
+service DoctorService {
+  rpc CreateDoctor(CreateDoctorRequest) returns (DoctorResponse);
+  rpc GetDoctor(GetDoctorRequest) returns (DoctorResponse);
+  rpc ListDoctors(Empty) returns (ListDoctorsResponse);
+}
+
+message CreateDoctorRequest {
+  string name = 1;
+  string specialty = 2;
+}
+
+message GetDoctorRequest {
+  string id = 1;
+}
+
+message DoctorResponse {
+  string id = 1;
+  string name = 2;
+  string specialty = 3;
+}
+
+message ListDoctorsResponse {
+  repeated DoctorResponse doctors = 1;
+}
+
+message Empty {}
