@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	repo := repository.NewDocRepo()
+	repo := repository.NewInMemoryRepo()
 	uc := usecase.NewDocUsecase(repo)
 	handler := transport.NewHandler(uc)
 
@@ -24,5 +24,7 @@ func main() {
 	pb.RegisterDoctorServiceServer(grpcServer, handler)
 
 	log.Println("Doctor Service: 50051")
-	grpcServer.Serve(lis)
+	if err := grpcServer.Serve(lis); err != nil {
+		log.Fatalf("failed to serve gRPC: %v", err)
+	}
 }

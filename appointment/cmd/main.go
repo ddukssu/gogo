@@ -19,7 +19,7 @@ func main() {
 	}
 
 	repo := repository.NewInMemoryRepo()
-	uc := usecase.NewAppointmentUseCase(repo, *docClient)
+	uc := usecase.NewAppointmentUseCase(repo, docClient)
 	handler := transport.NewHandler(uc)
 
 	lis, err := net.Listen("tcp", ":50052")

@@ -2,7 +2,7 @@ package grpc
 
 import (
 	"context"
-	"github.com/ddukssu/gogo/appointment/internal/model"
+
 	"github.com/ddukssu/gogo/appointment/internal/usecase"
 	pb "github.com/ddukssu/gogo/appointment/proto"
 	"google.golang.org/grpc/codes"
@@ -18,18 +18,22 @@ func NewHandler(uc *usecase.AppointmentUsecase) *Handler {
 	return &Handler{usecase: uc}
 }
 
-func (h *Handler) CreateAppointment(ctx context.Context, req *pb.CreateAppointmentRequest) (*pb.AppointmentResponse, error) {
-	app := &model.Appointment{PatientID: req.PatientId, DoctorID: req.DoctorId, Date: req.Date}
-	err := h.usecase.CreateAppointment(app)
+func (h *Handler) CreateAppointment(_ context.Context, req *pb.CreateAppointmentRequest) (*pb.AppointmentResponse, error) {
+	appt, err := h.usecase.Create(req.PatientId, req.Date, req.DoctorId)
 	if err != nil {
-		// Трансляция ошибки из usecase в gRPC код
+		if st, ok := status.FromError(err); ok && st.Code() == codes.Unavailable {
+			return nil, status.Errorf(codes.Unavailable, st.Message())
+		}
 		if err.Error() == "doctor does not exist" {
 			return nil, status.Errorf(codes.NotFound, "врач не найден")
 		}
-		if err.Error() == "doctor service недоступен" {
-			return nil, status.Errorf(codes.Unavailable, err.Error())
-		}
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
-	return &pb.AppointmentResponse{Id: app.ID, PatientId: app.PatientID, DoctorId: app.DoctorID, Date: app.Date}, nil
+
+	return &pb.AppointmentResponse{
+		Id:        appt.ID,
+		PatientId: appt.Title,
+		DoctorId:  appt.DoctorID,
+		Date:      appt.Description,
+	}, nil
 }

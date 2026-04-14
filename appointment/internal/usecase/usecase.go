@@ -11,10 +11,10 @@ import (
 
 type AppointmentUsecase struct {
 	repo         repository.AppoiRepo
-	doctorClient clients.DoctorClient
+	doctorClient *clients.DoctorClient
 }
 
-func NewAppointmentUseCase(repo repository.AppoiRepo, dc clients.DoctorClient) *AppointmentUsecase {
+func NewAppointmentUseCase(repo repository.AppoiRepo, dc *clients.DoctorClient) *AppointmentUsecase {
 	return &AppointmentUsecase{repo: repo, doctorClient: dc}
 }
 
@@ -26,8 +26,12 @@ func (uc *AppointmentUsecase) Create(title, description, doctorID string) (*mode
 		return nil, errors.New("doctorID is required")
 	}
 
-	if err := uc.doctorClient.DoctorExists(doctorID); err != nil {
+	exists, err := uc.doctorClient.CheckDoctorExists(doctorID)
+	if err != nil {
 		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("doctor does not exist")
 	}
 
 	a := &model.Appointment{

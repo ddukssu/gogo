@@ -25,6 +25,7 @@ type CreateDoctorRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	Specialty     string                 `protobuf:"bytes,2,opt,name=specialty,proto3" json:"specialty,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,6 +70,13 @@ func (x *CreateDoctorRequest) GetName() string {
 func (x *CreateDoctorRequest) GetSpecialty() string {
 	if x != nil {
 		return x.Specialty
+	}
+	return ""
+}
+
+func (x *CreateDoctorRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
 	}
 	return ""
 }
@@ -122,6 +130,7 @@ type DoctorResponse struct {
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
 	Specialty     string                 `protobuf:"bytes,3,opt,name=specialty,proto3" json:"specialty,omitempty"`
+	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -173,6 +182,13 @@ func (x *DoctorResponse) GetName() string {
 func (x *DoctorResponse) GetSpecialty() string {
 	if x != nil {
 		return x.Specialty
+	}
+	return ""
+}
+
+func (x *DoctorResponse) GetEmail() string {
+	if x != nil {
+		return x.Email
 	}
 	return ""
 }
@@ -261,16 +277,18 @@ var File_proto_doctor_proto protoreflect.FileDescriptor
 
 const file_proto_doctor_proto_rawDesc = "" +
 	"\n" +
-	"\x12proto/doctor.proto\x12\x06doctor\"G\n" +
+	"\x12proto/doctor.proto\x12\x06doctor\"]\n" +
 	"\x13CreateDoctorRequest\x12\x12\n" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1c\n" +
-	"\tspecialty\x18\x02 \x01(\tR\tspecialty\"\"\n" +
+	"\tspecialty\x18\x02 \x01(\tR\tspecialty\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\"\"\n" +
 	"\x10GetDoctorRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"R\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"h\n" +
 	"\x0eDoctorResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x1c\n" +
-	"\tspecialty\x18\x03 \x01(\tR\tspecialty\"G\n" +
+	"\tspecialty\x18\x03 \x01(\tR\tspecialty\x12\x14\n" +
+	"\x05email\x18\x04 \x01(\tR\x05email\"G\n" +
 	"\x13ListDoctorsResponse\x120\n" +
 	"\adoctors\x18\x01 \x03(\v2\x16.doctor.DoctorResponseR\adoctors\"\a\n" +
 	"\x05Empty2\xce\x01\n" +

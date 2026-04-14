@@ -19,11 +19,11 @@ func NewHandler(uc *usecase.DocUsecase) *Handler {
 }
 
 func (h *Handler) CreateDoctor(_ context.Context, req *pb.CreateDoctorRequest) (*pb.DoctorResponse, error) {
-	if req.Name == "" || req.Specialty == "" {
+	if req.Name == "" || req.Specialty == "" || req.Email == "" {
 		return nil, status.Errorf(codes.InvalidArgument, "пустые поля")
 	}
 
-	doc, err := h.usecase.Create(req.Name, req.Specialty, "")
+	doc, err := h.usecase.Create(req.Name, req.Specialty, req.Email)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
@@ -32,6 +32,7 @@ func (h *Handler) CreateDoctor(_ context.Context, req *pb.CreateDoctorRequest) (
 		Id:        doc.ID,
 		Name:      doc.FullName,
 		Specialty: doc.Specialization,
+		Email:     doc.Email,
 	}, nil
 }
 
@@ -45,6 +46,7 @@ func (h *Handler) GetDoctor(_ context.Context, req *pb.GetDoctorRequest) (*pb.Do
 		Id:        doc.ID,
 		Name:      doc.FullName,
 		Specialty: doc.Specialization,
+		Email:     doc.Email,
 	}, nil
 }
 
@@ -60,6 +62,7 @@ func (h *Handler) ListDoctors(_ context.Context, _ *pb.Empty) (*pb.ListDoctorsRe
 			Id:        d.ID,
 			Name:      d.FullName,
 			Specialty: d.Specialization,
+			Email:     d.Email,
 		})
 	}
 
