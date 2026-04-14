@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sync"
 
-	"doc/internal/model"
+	"github.com/ddukssu/gogo/doc/internal/model"
 
 	"github.com/google/uuid"
 )

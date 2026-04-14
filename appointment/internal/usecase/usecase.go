@@ -4,9 +4,9 @@ import (
 	"errors"
 	"time"
 
-	"appointment/internal/clients"
-	"appointment/internal/model"
-	"appointment/internal/repository"
+	"github.com/ddukssu/gogo/appointment/internal/clients"
+	"github.com/ddukssu/gogo/appointment/internal/model"
+	"github.com/ddukssu/gogo/appointment/internal/repository"
 )
 
 type AppointmentUsecase struct {

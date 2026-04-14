@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"appointment/internal/model"
+	"github.com/ddukssu/gogo/appointment/internal/model"
 
 	"errors"
 

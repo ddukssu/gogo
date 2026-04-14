@@ -2,6 +2,8 @@ module github.com/ddukssu/gogo/appointment
 
 go 1.25.5
 
+replace github.com/ddukssu/gogo/doc => ../doc
+
 require (
 	github.com/ddukssu/gogo/doc v0.0.0-00010101000000-000000000000
 	github.com/gin-gonic/gin v1.12.0
@@ -41,5 +43,3 @@ require (
 	golang.org/x/text v0.34.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20260120221211-b8f7ae30c516 // indirect
 )
-
-replace github.com/ddukssu/gogo/doc => ../doc

@@ -1,9 +1,9 @@
 package app
 
 import (
-	"doc/internal/repository"
-	transport "doc/internal/transport/http"
-	"doc/internal/usecase"
+	"github.com/ddukssu/gogo/doc/internal/repository"
+	transport "github.com/ddukssu/gogo/doc/internal/transport/http"
+	"github.com/ddukssu/gogo/doc/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

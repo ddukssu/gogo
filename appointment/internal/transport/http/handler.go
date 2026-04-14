@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"appointment/internal/clients"
-	"appointment/internal/model"
-	"appointment/internal/repository"
-	"appointment/internal/usecase"
+	"github.com/ddukssu/gogo/appointment/internal/clients"
+	"github.com/ddukssu/gogo/appointment/internal/model"
+	"github.com/ddukssu/gogo/appointment/internal/repository"
+	"github.com/ddukssu/gogo/appointment/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

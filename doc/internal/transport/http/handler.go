@@ -4,8 +4,8 @@ import (
 	"errors"
 	"net/http"
 
-	"doc/internal/repository"
-	"doc/internal/usecase"
+	"github.com/ddukssu/gogo/doc/internal/repository"
+	"github.com/ddukssu/gogo/doc/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

@@ -1,10 +1,10 @@
 package app
 
 import (
-	"appointment/internal/clients"
-	"appointment/internal/repository"
-	transport "appointment/internal/transport/http"
-	"appointment/internal/usecase"
+	"github.com/ddukssu/gogo/appointment/internal/clients"
+	"github.com/ddukssu/gogo/appointment/internal/repository"
+	transport "github.com/ddukssu/gogo/appointment/internal/transport/http"
+	"github.com/ddukssu/gogo/appointment/internal/usecase"
 
 	"github.com/gin-gonic/gin"
 )

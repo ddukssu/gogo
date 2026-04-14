@@ -3,8 +3,8 @@ package usecase
 import (
 	"errors"
 
-	"doc/internal/model"
-	"doc/internal/repository"
+	"github.com/ddukssu/gogo/doc/internal/model"
+	"github.com/ddukssu/gogo/doc/internal/repository"
 )
 
 var ErrValidation = errors.New("validation error")
