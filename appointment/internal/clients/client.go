@@ -28,7 +28,7 @@ func (c *DoctorClient) CheckDoctorExists(doctorID string) (bool, error) {
 		if ok && st.Code() == codes.NotFound {
 			return false, nil
 		}
-		return false, status.Errorf(codes.Unavailable, "doctor service недоступен")
+		return false, status.Errorf(codes.Unavailable, "doctor service unavailable")
 	}
 	return true, nil
 }

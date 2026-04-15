@@ -20,7 +20,7 @@ func NewHandler(uc *usecase.DocUsecase) *Handler {
 
 func (h *Handler) CreateDoctor(_ context.Context, req *pb.CreateDoctorRequest) (*pb.DoctorResponse, error) {
 	if req.Name == "" || req.Specialty == "" || req.Email == "" {
-		return nil, status.Errorf(codes.InvalidArgument, "пустые поля")
+		return nil, status.Errorf(codes.InvalidArgument, "empty fields")
 	}
 
 	doc, err := h.usecase.Create(req.Name, req.Specialty, req.Email)
@@ -39,7 +39,7 @@ func (h *Handler) CreateDoctor(_ context.Context, req *pb.CreateDoctorRequest) (
 func (h *Handler) GetDoctor(_ context.Context, req *pb.GetDoctorRequest) (*pb.DoctorResponse, error) {
 	doc, err := h.usecase.GetByID(req.Id)
 	if err != nil {
-		return nil, status.Errorf(codes.NotFound, "врач не найден")
+		return nil, status.Errorf(codes.NotFound, "doctor not found")
 	}
 
 	return &pb.DoctorResponse{

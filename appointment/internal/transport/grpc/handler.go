@@ -25,7 +25,7 @@ func (h *Handler) CreateAppointment(_ context.Context, req *pb.CreateAppointment
 			return nil, status.Errorf(codes.Unavailable, st.Message())
 		}
 		if err.Error() == "doctor does not exist" {
-			return nil, status.Errorf(codes.NotFound, "врач не найден")
+			return nil, status.Errorf(codes.NotFound, "doctor not found")
 		}
 		return nil, status.Errorf(codes.Internal, err.Error())
 	}
